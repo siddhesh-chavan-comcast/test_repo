@@ -9,14 +9,19 @@ jobs:
 
     steps:
     - name: Wait for report file to be generated
+      env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         PR_ID="${{ github.event.pull_request.number }}"
         PR_REF="${{ github.event.pull_request.head.ref }}"
         PR_REPO="${{ github.event.pull_request.head.repo.full_name }}"
         REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
         for i in {1..30}; do
-          git fetch origin pull/${PR_ID}/head:pr_branch
-          git checkout pr_branch
+          cd ${{ github.workspace }}
+          rm -fr test_repo
+          git clone https://github.com/siddhesh-chavan-comcast/test_repo.git
+          cd test_repo
+          GH_TOKEN="$GH_TOKEN" gh pr checkout $PR_ID -R siddhesh-chavan-comcast/test_repo
           if [ -f "$REPORT_FILE" ]; then
             echo "Report file $REPORT_FILE found."
             break
