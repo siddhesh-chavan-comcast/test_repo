@@ -21,6 +21,7 @@ jobs:
         PR_REPO="${{ github.event.pull_request.head.repo.full_name }}"
         REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
         for i in {1..30}; do
+          echo "Attempt : $i"
           cd ${{ github.workspace }}
           rm -fr test_repo
           git clone https://github.com/siddhesh-chavan-comcast/test_repo.git
