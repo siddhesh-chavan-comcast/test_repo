@@ -1,0 +1,28 @@
+name: Monitor Player Interface PRs
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # every 5 minutes
+  workflow_dispatch: # allow manual trigger for testing
+
+jobs:
+  check-player_interface-prs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check PR report is ready in test
+      run: |
+        PR_ID="${{ github.event.pull_request.number }}"
+        REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
+        if [ -f "$REPORT_FILE" ]; then
+          echo "Report file $REPORT_FILE found."
+        else
+          echo "Report file $REPORT_FILE not found."
+          exit 1
+        fi
+
+    - name: Upload PR report as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pr_report
+        path: test/L2_Tests/reports/r${{ github.event.pull_request.number }}.txt
