@@ -12,6 +12,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y gh
+        
     - name: Wait for report file to be generated
       env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,3 +58,10 @@ jobs:
       with:
         name: pr_report
         path: ${{ github.workspace }}/r${{ github.event.pull_request.number }}.txt
+
+
+
+
+
+
+
