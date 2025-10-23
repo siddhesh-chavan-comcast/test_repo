@@ -45,7 +45,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}/test_repo
         PR_ID="${{ github.event.pull_request.number }}"
-        REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
+        REPORT_FILE="${{ github.workspace }}/test_repo/test/L2_Tests/reports/r${PR_ID}.txt"
         if [ -f "$REPORT_FILE" ]; then
           echo "Report file $REPORT_FILE found."
         else
