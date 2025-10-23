@@ -11,8 +11,12 @@ jobs:
     - name: Wait for report file to be generated
       run: |
         PR_ID="${{ github.event.pull_request.number }}"
+        PR_REF="${{ github.event.pull_request.head.ref }}"
+        PR_REPO="${{ github.event.pull_request.head.repo.full_name }}"
         REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
         for i in {1..30}; do
+          git fetch origin pull/${PR_ID}/head:pr_branch
+          git checkout pr_branch
           if [ -f "$REPORT_FILE" ]; then
             echo "Report file $REPORT_FILE found."
             break
