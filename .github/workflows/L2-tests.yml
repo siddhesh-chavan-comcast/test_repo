@@ -57,4 +57,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pr_report
-        path: cd ${{ github.workspace }}/test_repo/test/L2_Tests/reports/r${{ github.event.pull_request.number }}.txt
+        path: ${{ github.workspace }}/test_repo/test/L2_Tests/reports/r${{ github.event.pull_request.number }}.txt
