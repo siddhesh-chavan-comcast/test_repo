@@ -1,15 +1,31 @@
 name: Monitor Player Interface PRs
 
 on:
-  schedule:
-    - cron: '*/5 * * * *' # every 5 minutes
-  workflow_dispatch: # allow manual trigger for testing
+  pull_request: # run on every PR
 
 jobs:
   check-player_interface-prs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Wait for report file to be generated
+      run: |
+        PR_ID="${{ github.event.pull_request.number }}"
+        REPORT_FILE="test/L2_Tests/reports/r${PR_ID}.txt"
+        for i in {1..30}; do
+          if [ -f "$REPORT_FILE" ]; then
+            echo "Report file $REPORT_FILE found."
+            break
+          else
+            echo "Waiting for report file $REPORT_FILE... ($i/30)"
+            sleep 30
+          fi
+        done
+        if [ ! -f "$REPORT_FILE" ]; then
+          echo "Report file $REPORT_FILE not found after waiting."
+          exit 1
+        fi
+
     - name: Check PR report is ready in test
       run: |
         PR_ID="${{ github.event.pull_request.number }}"
