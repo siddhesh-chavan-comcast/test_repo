@@ -10,9 +10,8 @@ jobs:
     steps:
     - name: Install GitHub CLI
       run: |
-        apt-get update
-        apt-get install -y gh
-        
+        sudo apt-get update
+        sudo apt-get install -y gh
     - name: Wait for report file to be generated
       env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -26,6 +25,8 @@ jobs:
           rm -fr test_repo
           git clone https://github.com/siddhesh-chavan-comcast/test_repo.git
           cd test_repo
+          pwd
+          ls -lrt $REPORT_FILE
           GH_TOKEN="$GH_TOKEN" gh pr checkout $PR_ID -R siddhesh-chavan-comcast/test_repo
           if [ -f "$REPORT_FILE" ]; then
             echo "Report file $REPORT_FILE found."
@@ -58,10 +59,3 @@ jobs:
       with:
         name: pr_report
         path: ${{ github.workspace }}/r${{ github.event.pull_request.number }}.txt
-
-
-
-
-
-
-
