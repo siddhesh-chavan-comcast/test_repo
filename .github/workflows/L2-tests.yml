@@ -26,7 +26,7 @@ jobs:
           git clone https://github.com/siddhesh-chavan-comcast/test_repo.git
           cd test_repo
           pwd
-          ls -lrt $REPORT_FILE
+          ls -lrt test/L2_Tests/reports/*
           GH_TOKEN="$GH_TOKEN" gh pr checkout $PR_ID -R siddhesh-chavan-comcast/test_repo
           if [ -f "$REPORT_FILE" ]; then
             echo "Report file $REPORT_FILE found."
