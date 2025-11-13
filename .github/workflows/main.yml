@@ -1,4 +1,4 @@
-name: Monitor Player Interface PRs and Execute L2 Tests
+name:  Tests
 
 on:
   workflow_dispatch: # allow manual trigger for testing
@@ -44,6 +44,13 @@ jobs:
           echo "Cached PR number: $(cat latest_pr_number.cache)"
         else
           echo "No cached PR number found."
+        fi
+
+    - name: Initialize latest PR cache file
+      run: |
+        if [ ! -f latest_pr_number.cache ]; then
+          echo "0" > latest_pr_number.cache
+          echo "Initialized latest_pr_number.cache with 0."
         fi
 
     - name: Clone Player Interface repo
