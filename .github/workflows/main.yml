@@ -47,7 +47,6 @@ jobs:
         fi
 
     - name: Clone Player Interface repo
-      id: set_latest_pr
       working-directory: ${{ env.WORKING_ROOT }}
       env:
         TIME_WINDOW: ${{ github.event.inputs.time_window_minutes || '5' }}
@@ -57,13 +56,16 @@ jobs:
         latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
         latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
         echo "Latest PR number: $latest_pr_number"
+        # Purge previous cache file if exists
+        if [ -f latest_pr_number.cache ]; then
+          rm latest_pr_number.cache
+        fi
         echo "$latest_pr_number" > latest_pr_number.cache
-        echo "latest_pr_number=$latest_pr_number" >> $GITHUB_ENV
 
     - name: Save latest PR cache
       uses: actions/cache@v4
       with:
         path: latest_pr_number.cache
-        key: latest-pr-number-cache-${{ env.latest_pr_number }}
+        key: latest-pr-number-cache
 
 
