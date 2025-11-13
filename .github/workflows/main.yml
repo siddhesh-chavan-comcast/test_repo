@@ -32,11 +32,11 @@ jobs:
         # gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 
 
-    - name: Restore latest PR cache
-      uses: actions/cache@v4
+    - name: Download latest PR artifact
+      uses: actions/download-artifact@v4
       with:
-        path: latest_pr_number.cache
-        key: latest-pr-number-cache
+        name: latest_pr_number
+        path: .
 
     - name: Print cached PR number before clone
       run: |
@@ -56,16 +56,12 @@ jobs:
         latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
         latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
         echo "Latest PR number: $latest_pr_number"
-        # Purge previous cache file if exists
-        if [ -f latest_pr_number.cache ]; then
-          rm latest_pr_number.cache
-        fi
         echo "$latest_pr_number" > latest_pr_number.cache
 
-    - name: Save latest PR cache
-      uses: actions/cache@v4
+    - name: Upload latest PR artifact
+      uses: actions/upload-artifact@v4
       with:
+        name: latest_pr_number
         path: latest_pr_number.cache
-        key: latest-pr-number-cache
 
 
