@@ -37,10 +37,11 @@ jobs:
 
 
     - name: Get previous latest PR number from repository variable
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        previous_pr=$(gh api repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER --jq '.value' 2>/dev/null || echo "0")
+        previous_pr=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER" \
+          | jq -r '.value' 2>/dev/null || echo "0")
         echo "Previous latest PR number: $previous_pr"
         echo "PREVIOUS_LATEST_PR=$previous_pr" >> $GITHUB_ENV
 
@@ -61,20 +62,27 @@ jobs:
         echo "NEW_LATEST_PR=$latest_pr_number" >> $GITHUB_ENV
 
     - name: Update repository variable with latest PR number
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # Check if variable exists
-        if gh api repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER 2>/dev/null; then
+        response=$(curl -s -o /dev/null -w "%{http_code}" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER")
+        
+        if [ "$response" = "200" ]; then
           # Update existing variable
-          gh api --method PATCH repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER \
-            -f name='LATEST_PR_NUMBER' \
-            -f value='${{ env.NEW_LATEST_PR }}'
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER" \
+            -d "{\"name\":\"LATEST_PR_NUMBER\",\"value\":\"${{ env.NEW_LATEST_PR }}\"}"
         else
           # Create new variable
-          gh api --method POST repos/${{ github.repository }}/actions/variables \
-            -f name='LATEST_PR_NUMBER' \
-            -f value='${{ env.NEW_LATEST_PR }}'
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/variables" \
+            -d "{\"name\":\"LATEST_PR_NUMBER\",\"value\":\"${{ env.NEW_LATEST_PR }}\"}"
         fi
         echo "Updated LATEST_PR_NUMBER to ${{ env.NEW_LATEST_PR }}"
 
