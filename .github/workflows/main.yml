@@ -58,12 +58,12 @@ jobs:
         latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
         latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
         echo "Latest PR number: $latest_pr_number"
-        echo "$latest_pr_number" > latest_pr_number.cache
+        echo "$latest_pr_number" > ${{ env.MTF_REPO }}latest_pr_number.cache
 
     - name: Upload latest PR artifact
       uses: actions/upload-artifact@v4
       with:
         name: latest_pr_number
-        path: ${{ env.WORKING_ROOT }}latest_pr_number.cache
+        path: ${{ env.MTF_REPO }}latest_pr_number.cache
 
 
