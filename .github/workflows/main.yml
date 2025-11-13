@@ -12,6 +12,8 @@ on:
 jobs:
   check-player_interface-prs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       LATEST_PR: 0
       PLAYER_INTERFACE_REPO: ${{ github.workspace }}/../middleware-player-interface/
@@ -33,20 +35,17 @@ jobs:
         # gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 
 
-    - name: Download latest PR artifact
-      continue-on-error: true
-      uses: actions/download-artifact@v4
-      with:
-        name: latest_pr_number
-        path: .
+    - name: Get previous latest PR number from repository variable
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        previous_pr=$(gh api repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER --jq '.value' 2>/dev/null || echo "0")
+        echo "Previous latest PR number: $previous_pr"
+        echo "PREVIOUS_LATEST_PR=$previous_pr" >> $GITHUB_ENV
 
     - name: Print cached PR number before clone
       run: |
-        if [ -f latest_pr_number.cache ]; then
-          echo "Cached PR number before clone: $(cat latest_pr_number.cache)"
-        else
-          echo "No cached PR number found before clone."
-        fi
+        echo "Cached PR number before clone: ${{ env.PREVIOUS_LATEST_PR }}"
 
     - name: Clone Player Interface repo
       working-directory: ${{ env.WORKING_ROOT }}
@@ -58,12 +57,24 @@ jobs:
         latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
         latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
         echo "Latest PR number: $latest_pr_number"
-        echo "$latest_pr_number" > ${{ env.MTF_REPO }}latest_pr_number.cache
+        echo "NEW_LATEST_PR=$latest_pr_number" >> $GITHUB_ENV
 
-    - name: Upload latest PR artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: latest_pr_number
-        path: ${{ env.MTF_REPO }}latest_pr_number.cache
+    - name: Update repository variable with latest PR number
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Check if variable exists
+        if gh api repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER 2>/dev/null; then
+          # Update existing variable
+          gh api --method PATCH repos/${{ github.repository }}/actions/variables/LATEST_PR_NUMBER \
+            -f name='LATEST_PR_NUMBER' \
+            -f value='${{ env.NEW_LATEST_PR }}'
+        else
+          # Create new variable
+          gh api --method POST repos/${{ github.repository }}/actions/variables \
+            -f name='LATEST_PR_NUMBER' \
+            -f value='${{ env.NEW_LATEST_PR }}'
+        fi
+        echo "Updated LATEST_PR_NUMBER to ${{ env.NEW_LATEST_PR }}"
 
 
