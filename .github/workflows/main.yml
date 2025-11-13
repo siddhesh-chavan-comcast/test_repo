@@ -1,0 +1,96 @@
+name: Monitor Player Interface PRs and Execute L2 Tests
+
+on:
+  workflow_dispatch: # allow manual trigger for testing
+    inputs:
+        time_window_minutes:
+            description: 'Time window in minutes to check for updated PRs'
+            required: false
+            default: '5'
+            type: string
+
+jobs:
+  check-player_interface-prs:
+    runs-on: ubuntu-latest
+    env:
+      PLAYER_INTERFACE_REPO: ${{ github.workspace }}/../middleware-player-interface/
+      PLAYER_INTERFACE_GIT: "https://github.com/rdkcentral/middleware-player-interface.git"
+      MTF_REPO: ${{ github.workspace }}/
+      TEST_STREAMS: ${{ github.workspace }}/../test_streams
+      WORKING_ROOT: ${{ github.workspace }}/../
+
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tree 
+        # gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+
+
+    # Download artifact only on GitHub Actions
+    - name: Download latest PR artifact
+      if: ${{ env.ACT != 'true' }}
+      uses: actions/download-artifact@v3
+      with:
+        name: latest_pr_number
+        path: .
+
+    - name: Print cached PR number
+      run: |
+        if [ -f latest_pr_number.cache ]; then
+          echo "Cached PR number: $(cat latest_pr_number.cache)"
+        else
+          echo "No cached PR number found. This is normal on the first run. The artifact will be available on subsequent runs."
+        fi
+
+    - name: Clone Player Interface repo
+      working-directory: ${{ env.WORKING_ROOT }}
+      env:
+        TIME_WINDOW: ${{ github.event.inputs.time_window_minutes || '5' }}
+      run: |
+        git clone https://github.com/rdkcentral/middleware-player-interface.git
+        prs=$(curl -s "https://api.github.com/repos/rdkcentral/middleware-player-interface/pulls?state=open&per_page=100")
+        latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
+        latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
+        echo "Latest PR number: $latest_pr_number"
+        echo "$latest_pr_number" > latest_pr_number.cache
+
+    # Upload artifact only on GitHub Actions
+    - name: Upload latest PR artifact
+      if: ${{ env.ACT != 'true' }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: latest_pr_number
+        path: latest_pr_number.cache
+
+    - name: Print workflow run count
+      run: |
+        if [ -f workflow_run_count.txt ]; then
+          count=$(cat workflow_run_count.txt)
+          echo "Workflow has run $count times."
+        else
+          echo "Workflow has not run before. Initializing count."
+        fi
+
+    - name: Increment workflow run count
+      run: |
+        if [ -f workflow_run_count.txt ]; then
+          count=$(cat workflow_run_count.txt)
+          count=$((count+1))
+        else
+          count=1
+        fi
+        echo "$count" > workflow_run_count.txt
+        echo "Updated workflow run count: $count"
+
+    # - name: Set up Python
+    #   uses: actions/setup-python@v4
+    #   with:
+    #     python-version: '3.10'
+
+
