@@ -33,7 +33,7 @@ jobs:
 
 
     - name: Restore latest PR cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: latest_pr_number.cache
         key: latest-pr-number-cache
@@ -46,12 +46,6 @@ jobs:
           echo "No cached PR number found."
         fi
 
-    - name: Initialize latest PR cache file
-      run: |
-        if [ ! -f latest_pr_number.cache ]; then
-          echo "0" > latest_pr_number.cache
-          echo "Initialized latest_pr_number.cache with 0."
-        fi
 
     - name: Clone Player Interface repo
       working-directory: ${{ env.WORKING_ROOT }}
@@ -66,9 +60,10 @@ jobs:
         echo "Latest PR number: $latest_pr_number"
         # echo "Latest PR details: $latest_pr"
         echo "$latest_pr_number" > latest_pr_number.cache
-
+        
+        
     - name: Save latest PR cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: latest_pr_number.cache
         key: latest-pr-number-cache
