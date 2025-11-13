@@ -1,4 +1,4 @@
-name: Monitor Player Interface PRs and Execute L2 Tests
+name: Tests
 
 on:
   workflow_dispatch: # allow manual trigger for testing
@@ -35,7 +35,7 @@ jobs:
     # Download artifact only on GitHub Actions
     - name: Download latest PR artifact
       if: ${{ env.ACT != 'true' }}
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: latest_pr_number
         path: .
@@ -63,7 +63,7 @@ jobs:
     # Upload artifact only on GitHub Actions
     - name: Upload latest PR artifact
       if: ${{ env.ACT != 'true' }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: latest_pr_number
         path: latest_pr_number.cache
