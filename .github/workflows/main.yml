@@ -38,14 +38,13 @@ jobs:
         path: latest_pr_number.cache
         key: latest-pr-number-cache
 
-    - name: Print cached PR number
+    - name: Print cached PR number before clone
       run: |
         if [ -f latest_pr_number.cache ]; then
-          echo "Cached PR number: $(cat latest_pr_number.cache)"
+          echo "Cached PR number before clone: $(cat latest_pr_number.cache)"
         else
-          echo "No cached PR number found."
+          echo "No cached PR number found before clone."
         fi
-
 
     - name: Clone Player Interface repo
       working-directory: ${{ env.WORKING_ROOT }}
@@ -53,24 +52,16 @@ jobs:
         TIME_WINDOW: ${{ github.event.inputs.time_window_minutes || '5' }}
       run: |
         git clone https://github.com/rdkcentral/middleware-player-interface.git
-        # tree middleware-player-interface
         prs=$(curl -s "https://api.github.com/repos/rdkcentral/middleware-player-interface/pulls?state=open&per_page=100")
         latest_pr=$(echo "$prs" | jq 'sort_by(.updated_at) | reverse | .[0]')
         latest_pr_number=$(echo "$latest_pr" | jq -r '.number')
         echo "Latest PR number: $latest_pr_number"
-        # echo "Latest PR details: $latest_pr"
         echo "$latest_pr_number" > latest_pr_number.cache
-        
-        
+
     - name: Save latest PR cache
       uses: actions/cache@v4
       with:
         path: latest_pr_number.cache
         key: latest-pr-number-cache
-
-    # - name: Set up Python
-    #   uses: actions/setup-python@v4
-    #   with:
-    #     python-version: '3.10'
 
 
