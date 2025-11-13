@@ -33,15 +33,8 @@ jobs:
         # gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 
 
-    - name: Check if latest PR artifact is available
-      run: |
-        if [ ! -f latest_pr_number.cache ]; then
-          echo "latest_pr_number.cache not found. Skipping download."
-          env.LATEST_PR = '1'
-        fi
-
     - name: Download latest PR artifact
-      if: env.LATEST_PR == '0'
+      continue-on-error: true
       uses: actions/download-artifact@v4
       with:
         name: latest_pr_number
