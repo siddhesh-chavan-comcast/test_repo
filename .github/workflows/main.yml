@@ -13,6 +13,7 @@ jobs:
   check-player_interface-prs:
     runs-on: ubuntu-latest
     env:
+      LATEST_PR: 0
       PLAYER_INTERFACE_REPO: ${{ github.workspace }}/../middleware-player-interface/
       PLAYER_INTERFACE_GIT: "https://github.com/rdkcentral/middleware-player-interface.git"
       MTF_REPO: ${{ github.workspace }}/
@@ -32,7 +33,15 @@ jobs:
         # gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 
 
+    - name: Check if latest PR artifact is available
+      run: |
+        if [ ! -f latest_pr_number.cache ]; then
+          echo "latest_pr_number.cache not found. Skipping download."
+          env.LATEST_PR = '1'
+        fi
+
     - name: Download latest PR artifact
+      if: env.LATEST_PR == '0'
       uses: actions/download-artifact@v4
       with:
         name: latest_pr_number
